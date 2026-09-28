@@ -1,13 +1,13 @@
 # LUMA marketing website
 
-Public marketing site for LUMA (AI agents & WhatsApp solutions) by Innovative Tech.
+Public marketing site for LUMA (AI agents & WhatsApp solutions) by Innovative Tech — https://luma.itechintl.com
 Project context, pricing rules and decisions live in [`CLAUDE.md`](CLAUDE.md); the visual spec is in [`design/`](design).
 
 ## Stack
 - Next.js (App Router) + TypeScript, statically generated pages
 - Routes: `/en`, `/ar` (RTL), `/{lang}/demo`, `/{lang}/privacy`, `/{lang}/terms`; `/` redirects to `/en`
 - Client components only where needed: pricing Monthly/Yearly toggle, AI credit calculator, demo form, mobile menu
-- `POST /api/lead` (Node runtime): validation → Cloudflare Turnstile → Odoo `crm.lead` → fallback email to sales if Odoo is down
+- `POST /api/lead` (Node runtime): validation → Cloudflare Turnstile → email to the sales inbox (Resend)
 - Vercel region `dxb1` with `bom1` failover (`vercel.json`)
 
 ## Develop
@@ -27,19 +27,19 @@ npm run build
 | English / Arabic copy | `lib/i18n/en.ts`, `lib/i18n/ar.ts` |
 | Brand tokens, layout, responsive + RTL rules | `app/globals.css` |
 | Homepage sections | `components/` |
-| Demo form + API | `components/DemoForm.tsx`, `app/api/lead/route.ts`, `lib/lead.ts`, `lib/odoo.ts` |
+| Demo form + API | `components/DemoForm.tsx`, `app/api/lead/route.ts`, `lib/lead.ts`, `lib/email.ts` |
 | Sign-in / sign-up / WhatsApp links | `lib/site.ts` (driven by `NEXT_PUBLIC_*` env vars) |
 
 ## Environment variables
-See `.env.example`. Secrets (Odoo, Turnstile secret, Resend) go in Vercel → Project → Settings → Environment Variables only.
+See `.env.example`. Secrets (Turnstile secret, Resend API key) go in Vercel → Project → Settings → Environment Variables only.
 In production (`VERCEL_ENV=production`) the form refuses submissions until `TURNSTILE_SECRET_KEY` is set.
 
 Until the links are known, the site falls back safely: "Sign in" and "Choose plan" open the demo form, and the
 "Chat with us on WhatsApp" button is hidden until `NEXT_PUBLIC_WHATSAPP_NUMBER` is set.
 
 ## Still open (from CLAUDE.md)
-- Domain, client logos, product screenshots, contact details, LUMA app URLs, WhatsApp number
+- Client logos, product screenshots, contact details, LUMA app URLs, WhatsApp number
 - Privacy policy and terms text (placeholder pages exist)
 - Native-speaker review of Arabic copy — the demo form and legal strings were translated without a design
 - Cookie consent + analytics (Vercel Analytics / GA4, Meta Pixel), site chat widget (LUMA web agent)
-- Post-lead automation: Odoo activity for the rep, WhatsApp confirmation template, Odoo Appointments on the thank-you screen
+- Post-lead automation: WhatsApp confirmation template sent by LUMA, scheduling on the thank-you screen
