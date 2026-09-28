@@ -79,7 +79,7 @@ export function parseLead(input: unknown): Lead | null {
   };
 }
 
-/** Plain-text summary used for the Odoo description and the fallback email. */
+/** Plain-text summary used as the body of the sales email. */
 export function describeLead(lead: Lead): string {
   const lines = [
     `Name: ${lead.name}`,

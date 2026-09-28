@@ -62,20 +62,21 @@ Nav → Hero (headline "Turn every WhatsApp conversation into a qualified lead."
 ## Tech decisions (agreed)
 - Framework: **Next.js** (or Astro), TypeScript. Static/SSG pages; calculator and pricing toggle client-side.
 - Hosting: owner's **Vercel Pro** account (already has one other project; this is a new project). GitHub repo → preview deploys → main goes live.
-- Vercel Functions region: **Dubai `dxb1` as primary with a failover region** (e.g. `bom1` or `fra1`) — dxb1 had a ~2-week outage in March 2026. Use the **Node.js runtime**, not Edge, for the form function.
-- No database on Vercel. Odoo CRM is the single source of truth for leads.
-- Secrets (Odoo URL, DB, API key, Turnstile secret) in Vercel environment variables only.
+- Vercel Functions region: no region is pinned in code (no `vercel.json`); the project default applies. Dubai `dxb1` was rejected at launch ("region currently unavailable"). Use the **Node.js runtime**, not Edge, for the form function.
+- Domain: **luma.itechintl.com**.
+- No database and no CRM: demo requests are emailed to the sales inbox (Resend). There is no Odoo.
+- Secrets (Resend API key, Turnstile secret) in Vercel environment variables only.
 - Analytics: Vercel Web Analytics or GA4, plus Meta Pixel (paid social boosting planned). Cookie consent needed.
 
 ## "Book a demo" flow
 1. Click opens form (EN or AR). Fields: name, work email, WhatsApp number (country code default +971 / +966 by locale), company, country; optional "What would you like to use LUMA for?".
 2. Hidden fields: calculator estimate + recommended plan, page language, UTM source/medium/campaign.
 3. Two consent checkboxes linked to privacy policy: data processing to arrange a demo; agreement to be contacted on WhatsApp (required by Meta for business-initiated messages).
-4. Next.js API route (Node runtime, dxb1): server-side validation, Cloudflare Turnstile verification, then create `crm.lead` in Odoo via its external API — source "Website – LUMA", tags for language and plan interest, assigned to sales team.
-5. If Odoo is unreachable: email the full submission to sales@ so no lead is lost; still show thank-you.
+4. Next.js API route (Node runtime): server-side validation, Cloudflare Turnstile verification, then email the full submission (with plan interest, calculator estimate, language, UTM) to the sales inbox, reply-to set to the customer.
+5. If the email cannot be sent, show an error asking the visitor to retry or use WhatsApp.
 6. Never log personal data (log only "lead created, id N").
-7. After success: Odoo activity for the assigned rep (+ optional email/Slack), and a WhatsApp confirmation sent by LUMA with an approved template.
-8. Scheduling: either sales calls back, or thank-you screen embeds Odoo Appointments (if available in owner's Odoo edition).
+7. After success (not built yet): a WhatsApp confirmation sent by LUMA with an approved template.
+8. Scheduling: sales calls back.
 
 ## Other buttons
 - "Sign in" / "Choose plan" → LUMA app login/signup URLs (TBD). If no online payment yet, route "Choose plan" to the demo form.
@@ -83,7 +84,6 @@ Nav → Hero (headline "Turn every WhatsApp conversation into a qualified lead."
 - Embed the owner's own LUMA web agent as the site chat widget.
 
 ## Open items / placeholders
-- Domain not final (luma.ai, lumatech.ai taken; budget ~$20/yr; candidates like getluma.com, tryluma.com, askluma.com — verify availability).
 - Client logos (need permission), real product screenshots, email, phone/WhatsApp number, office address, LUMA app URLs.
 - Privacy policy and terms (UAE and KSA personal data protection laws apply).
 - Confirm plan-name language in Arabic; Arabic copy review.
@@ -94,5 +94,5 @@ Nav → Hero (headline "Turn every WhatsApp conversation into a qualified lead."
 2. Build the homepage from `design/home-en-desktop.html`, responsive to `design/home-en-mobile.html`.
 3. Port the Arabic page from `design/home-ar-desktop.html`.
 4. Build the calculator and pricing toggle as client components.
-5. Build the demo form + API route to Odoo with Turnstile and fallback email.
-6. Configure `vercel.json` regions and deploy a preview.
+5. Build the demo form + API route that emails sales, with Turnstile.
+6. Deploy a preview.

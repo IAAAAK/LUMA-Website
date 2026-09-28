@@ -1,9 +1,8 @@
 // POST /api/lead — "Book a demo" submissions.
-// Flow (CLAUDE.md): validate → verify Turnstile → create crm.lead in Odoo →
-// if Odoo fails, email the submission to sales so no lead is lost.
-// Never log personal data: only outcomes and Odoo ids.
-import { parseLead, describeLead, type Lead } from "@/lib/lead";
-import { createOdooLead } from "@/lib/odoo";
+// Flow (CLAUDE.md): validate → verify Turnstile → email the request to sales.
+// Never log personal data: only outcomes.
+import { parseLead } from "@/lib/lead";
+import { sendLeadEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,28 +29,6 @@ async function verifyTurnstile(token: unknown, ip: string | null): Promise<boole
   }
 }
 
-async function sendFallbackEmail(lead: Lead): Promise<boolean> {
-  const { RESEND_API_KEY, LEAD_FALLBACK_FROM, LEAD_FALLBACK_TO } = process.env;
-  if (!RESEND_API_KEY || !LEAD_FALLBACK_FROM || !LEAD_FALLBACK_TO) return false;
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: LEAD_FALLBACK_FROM,
-        to: LEAD_FALLBACK_TO.split(",").map((s) => s.trim()),
-        reply_to: lead.email,
-        subject: `[Odoo unreachable] LUMA demo request – ${lead.company}`,
-        text: `Odoo could not be reached, so this lead was not created automatically. Please add it manually.\n\n${describeLead(lead)}`,
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
 export async function POST(request: Request) {
   let payload: Record<string, unknown>;
   try {
@@ -69,14 +46,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const id = await createOdooLead(lead);
-    console.info(`lead created, id ${id}`);
+    await sendLeadEmail(lead);
+    console.info("lead emailed to sales");
     return Response.json({ ok: true });
   } catch (err) {
-    console.error(`odoo lead creation failed: ${err instanceof Error ? err.message : "unknown error"}`);
-    const emailed = await sendFallbackEmail(lead);
-    console.info(emailed ? "lead sent to fallback email" : "fallback email failed");
-    if (emailed) return Response.json({ ok: true });
+    console.error(`lead email failed: ${err instanceof Error ? err.message : "unknown error"}`);
     return Response.json({ ok: false, error: "server" }, { status: 502 });
   }
 }
