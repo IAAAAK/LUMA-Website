@@ -8,7 +8,7 @@ Project context, pricing rules and decisions live in [`CLAUDE.md`](CLAUDE.md); t
 - Routes: `/en`, `/ar` (RTL), `/{lang}/demo`, `/{lang}/privacy`, `/{lang}/terms`; `/` redirects to `/en`
 - Client components only where needed: pricing Monthly/Yearly toggle, AI credit calculator, demo form, mobile menu
 - `POST /api/lead` (Node runtime): validation → Cloudflare Turnstile → email to the sales inbox (Resend)
-- Vercel region `dxb1` with `bom1` failover (`vercel.json`)
+- No `vercel.json`: functions run in the project's default Vercel region (Project → Settings → Functions).
 
 ## Develop
 ```bash

@@ -62,7 +62,7 @@ Nav → Hero (headline "Turn every WhatsApp conversation into a qualified lead."
 ## Tech decisions (agreed)
 - Framework: **Next.js** (or Astro), TypeScript. Static/SSG pages; calculator and pricing toggle client-side.
 - Hosting: owner's **Vercel Pro** account (already has one other project; this is a new project). GitHub repo → preview deploys → main goes live.
-- Vercel Functions region: **Dubai `dxb1` as primary with a failover region** (e.g. `bom1` or `fra1`) — dxb1 had a ~2-week outage in March 2026. Use the **Node.js runtime**, not Edge, for the form function.
+- Vercel Functions region: no region is pinned in code (no `vercel.json`); the project default applies. Dubai `dxb1` was rejected at launch ("region currently unavailable"). Use the **Node.js runtime**, not Edge, for the form function.
 - Domain: **luma.itechintl.com**.
 - No database and no CRM: demo requests are emailed to the sales inbox (Resend). There is no Odoo.
 - Secrets (Resend API key, Turnstile secret) in Vercel environment variables only.
@@ -72,7 +72,7 @@ Nav → Hero (headline "Turn every WhatsApp conversation into a qualified lead."
 1. Click opens form (EN or AR). Fields: name, work email, WhatsApp number (country code default +971 / +966 by locale), company, country; optional "What would you like to use LUMA for?".
 2. Hidden fields: calculator estimate + recommended plan, page language, UTM source/medium/campaign.
 3. Two consent checkboxes linked to privacy policy: data processing to arrange a demo; agreement to be contacted on WhatsApp (required by Meta for business-initiated messages).
-4. Next.js API route (Node runtime, dxb1): server-side validation, Cloudflare Turnstile verification, then email the full submission (with plan interest, calculator estimate, language, UTM) to the sales inbox, reply-to set to the customer.
+4. Next.js API route (Node runtime): server-side validation, Cloudflare Turnstile verification, then email the full submission (with plan interest, calculator estimate, language, UTM) to the sales inbox, reply-to set to the customer.
 5. If the email cannot be sent, show an error asking the visitor to retry or use WhatsApp.
 6. Never log personal data (log only "lead created, id N").
 7. After success (not built yet): a WhatsApp confirmation sent by LUMA with an approved template.
@@ -95,4 +95,4 @@ Nav → Hero (headline "Turn every WhatsApp conversation into a qualified lead."
 3. Port the Arabic page from `design/home-ar-desktop.html`.
 4. Build the calculator and pricing toggle as client components.
 5. Build the demo form + API route that emails sales, with Turnstile.
-6. Configure `vercel.json` regions and deploy a preview.
+6. Deploy a preview.
